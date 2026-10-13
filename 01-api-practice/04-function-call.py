@@ -3,7 +3,7 @@
 # 场景：通用入门，用「计算器 + 获取时间」两个简单工具
 # 核心逻辑：大模型只做判断，不执行代码；本地Python执行函数，返回结果
 # ==================================================
-from click import prompt
+
 from openai import OpenAI  # 大模型客户端，DeepSeek兼容OpenAI接口格式
 from dotenv import load_dotenv  # 读取 .env 配置文件，存放API密钥
 import json  # 解析模型返回的工具调用参数（JSON字符串转字典）
@@ -110,6 +110,7 @@ messages = [
 # 【第四部分：第一次请求大模型】
 # 目的：让大模型判断「要不要调用工具、调用哪个、传什么参数」
 # ==================================================
+print("⏳ 正在思考...")
 response = client.chat.completions.create(
     model="deepseek-chat",
     messages=messages,  # 传入对话上下文
