@@ -63,22 +63,15 @@ tools = [
         "type": "function",
         "function": {
             "name": "get_current_time",
-            "description": "获取现在的时间、日期、几点几分。问时间时调用",
+            "description": "获取**实时**当前时间、日期。只要用户问现在几点、今天几号，必须调用这个工具获取最新时间，禁止使用历史数据。",
             "parameters": {"type": "object", "properties": {}, "required": []}
         }
     }
 ]
 
 
-# ====================== ReAct循环核心 ======================
-def react_run(user_question: str, max_steps: int = 5):
-    """
-    ReAct循环执行函数
-    :param user_question: 用户的问题/目标
-    :param max_steps: 最大循环步数，防止死循环
-    """
-    # 系统提示：规定ReAct的思考格式
-    system_prompt = """
+# 系统提示：规定ReAct的思考格式
+system_prompt = """
 你是一个会思考的智能助手，按照以下步骤解决问题：
 1. 先思考下一步该做什么
 2. 需要工具就调用工具，拿到结果后继续思考
@@ -90,16 +83,26 @@ def react_run(user_question: str, max_steps: int = 5):
 - 工具执行完拿到结果后，再继续思考
 """
 
+# 对话历史（记忆）全局对话记忆，全程只初始化一次
+messages = [
+    {"role": "system", "content": system_prompt}
+]
+
+# ====================== ReAct循环核心 ======================
+def react_run(user_question: str, max_steps: int = 5):
+    """
+    ReAct循环执行函数
+    :param user_question: 用户的问题/目标
+    :param max_steps: 最大循环步数，防止死循环
+    """
+
+    global messages  # 使用全局记忆
+
     print(f"🧑 用户问题：{user_question}")
     print("=" * 50)
 
-    # 对话历史（记忆）
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_question}
-    ]
-
-
+    # 把用户问题追加到全局记忆
+    messages.append({"role": "user", "content": user_question})
 
     # 循环执行
     for step in range(max_steps):
@@ -141,6 +144,8 @@ def react_run(user_question: str, max_steps: int = 5):
             # 没有工具调用 → 任务完成，给出最终答案
             print("\n✅ 最终答案：")
             print(resp_msg.content)
+            # 把最终回答也追加到记忆里
+            messages.append({"role": "assistant", "content": resp_msg.content})
             return resp_msg.content
 
     # 达到最大步数还没结束
@@ -151,8 +156,8 @@ def react_run(user_question: str, max_steps: int = 5):
 # ====================== 启动测试 ======================
 if __name__ == "__main__":
     # 测试题：需要两次工具调用的问题
-    react_run("现在几点了？再过6小时是几点？")
-    print("\n" + "=" * 60 + "\n")
+    # react_run("现在几点了？再过6小时是几点？")
+    # print("\n" + "=" * 60 + "\n")
 
     # 控制台输入对话
     print("=== ReAct 智能助手（输入 退出 结束）===")
