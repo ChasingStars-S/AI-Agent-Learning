@@ -215,7 +215,7 @@ class LLMClient:
         # ---------- 判断：模型发起了工具调用 ----------
         if resp_msg.tool_calls:
             # 先把模型的工具调用请求追加进对话上下文
-            messages.append(resp_msg)
+            messages.append(resp_msg.model_dump())  # 转成纯dict
 
             # 循环处理所有工具调用（原版本只处理第一个）
             for tool_call in resp_msg.tool_calls:

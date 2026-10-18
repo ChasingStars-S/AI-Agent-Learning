@@ -152,7 +152,7 @@ if resp_msg.tool_calls:
     print(f"✅ 工具执行结果：{result}")
 
     # 追加消息回上下文
-    messages.append(resp_msg)  # 1. 把模型发起工具调用的消息加回去
+    messages.append(resp_msg.model_dump())  # 转成纯dict  # 1. 把模型发起工具调用的消息加回去
     messages.append({  # 2. 把工具执行结果作为tool角色消息加回去
         "role": "tool",
         "tool_call_id": tool_call.id,  # 必须带ID，大模型靠它匹配对应哪次调用

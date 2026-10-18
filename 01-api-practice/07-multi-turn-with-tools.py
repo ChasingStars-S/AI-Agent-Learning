@@ -109,7 +109,7 @@ while True:
             result = "未知工具"
 
         # 追加调用信息和结果
-        messages.append(resp_msg)
+        messages.append(resp_msg.model_dump())  # 转成纯dict
         messages.append({
             "role": "tool",
             "tool_call_id": tool_call.id,

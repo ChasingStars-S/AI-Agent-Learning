@@ -133,7 +133,7 @@ def react_run(user_question: str, max_steps: int = 5):
             print(f"👁 观察结果：{observation}")
 
             # 把思考和观察都加入记忆
-            messages.append(resp_msg)
+            messages.append(resp_msg.model_dump())  # 转成纯dict
             messages.append({
                 "role": "tool",
                 "tool_call_id": tool_call.id,
