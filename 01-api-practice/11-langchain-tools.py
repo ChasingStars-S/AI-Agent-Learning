@@ -46,7 +46,8 @@ llm = ChatOpenAI(
 
 # ==================================================
 # 第一部分：用@tool装饰器定义工具
-# 对应资料：3. 工具的定义方式2：使用@tool装饰器
+# 对比原生：需要分别写「函数实现」和「tools说明书JSON」
+# LangChain：函数+文档字符串 = 工具，自动生成描述schema
 # ==================================================
 @tool
 def calculator(expression: str) -> str:
@@ -77,7 +78,6 @@ def get_current_time() -> str:
 
 # ==================================================
 # 第二部分：手动工具调用流程
-# 对应资料：1.3 工具调用的整体流程 + 2. 工具调用的四步
 # 对应原生：04-function-call.py 四步流程
 # ==================================================
 def manual_tool_call():
@@ -132,7 +132,6 @@ def manual_tool_call():
 
 # ==================================================
 # 第三部分：多工具自动选择测试
-# 对应资料：4.3 案例3：多工具调用
 # ==================================================
 def multi_tool_test():
     """测试不同问题下，模型自动选择调用哪个工具，或者不调用"""
@@ -156,14 +155,12 @@ def multi_tool_test():
 
 # ==================================================
 # 第四部分：LangGraph版自动ReAct Agent
-# 对应资料：第07章 智能体 + ReAct模式
 # 对应原生：08-simple-react.py 手写while循环
-# 新版写法：使用 langgraph.prebuilt.create_react_agent
+# 使用 langgraph.prebuilt.create_react_agent
 # ==================================================
 def auto_react_agent():
     """
     LangGraph版自动ReAct Agent
-    旧版用 AgentExecutor，新版直接用 create_react_agent
     内部自动完成：思考→行动→观察→再思考...循环直到结束
     """
     print("\n=== 3. LangGraph版自动ReAct Agent ===")
