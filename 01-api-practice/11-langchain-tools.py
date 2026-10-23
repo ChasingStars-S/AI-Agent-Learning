@@ -27,9 +27,9 @@ from langchain_core.messages import ToolMessage
 # ToolMessage：工具执行结果消息对象
 # 对应原生：{"role": "tool", "tool_call_id": "...", "content": "..."}
 
-# ---------- 新版Agent：从langgraph.prebuilt导入 ----------
-from langgraph.prebuilt import create_react_agent
-# LangGraph版ReAct Agent
+# ---------- 新版Agent：langchain 1.x 官方推荐从 langchain.agents 导入 ----------
+from langchain.agents import create_agent
+# create_agent：LangChain 1.x 新版ReAct Agent（替代已弃用的 create_react_agent）
 # 优势：基于状态机构建，可视化、可控、支持复杂分支
 
 # 加载配置
@@ -101,16 +101,24 @@ def manual_tool_call():
 
     print("模型是否调用工具：", bool(response.tool_calls))
 
+    # 工具名 → 工具对象 的映射字典，用于按名字分发执行
+    tools_map = {"calculator": calculator, "get_current_time": get_current_time}
+
     if response.tool_calls:
         # 取出第一个工具调用
+        # 【注意】新版LangChain 1.x中 tool_call 是字典，用 ["键"] 取值，没有 .name 属性
         tool_call = response.tool_calls[0]
-        print(f"调用工具：{tool_call.name}")
-        print(f"工具参数：{tool_call.args}")
+        tool_name = tool_call["name"]      # 工具名称
+        tool_args = tool_call["args"]      # 工具参数字典
+        tool_id = tool_call["id"]          # 调用ID，用于匹配工具结果
+        print(f"调用工具：{tool_name}")
+        print(f"工具参数：{tool_args}")
 
         # ---------- 第三步：执行工具 ----------
-        # 工具对象的 .invoke() 方法，直接传入参数字典执行
+        # 从映射字典里找到对应工具，传入参数字典执行
         # 对应原生：根据函数名找函数 + json.loads解析参数 + **解包调用
-        tool_result = calculator.invoke(tool_call)
+        tool_obj = tools_map.get(tool_name)
+        tool_result = tool_obj.invoke(tool_args)
         print(f"工具返回：{tool_result}")
 
         # ---------- 第四步：第二次调用，生成最终回答 ----------
@@ -120,7 +128,7 @@ def manual_tool_call():
             ("user", user_question),
             response,  # 模型返回的工具调用消息（对应原生assistant消息）
             ToolMessage(
-                tool_call_id=tool_call.id,  # 必须绑定调用ID，对应原生tool_call_id
+                tool_call_id=tool_id,  # 必须绑定调用ID，对应原生tool_call_id
                 content=tool_result
             )
         ]
@@ -148,25 +156,26 @@ def multi_tool_test():
     for q in questions:
         response = llm_with_tools.invoke(q)
         if response.tool_calls:
-            print(f"问题：{q} → 调用工具：{response.tool_calls[0].name}")
+            # 新版tool_call是字典，用 ["name"] 取值
+            print(f"问题：{q} → 调用工具：{response.tool_calls[0]['name']}")
         else:
             print(f"问题：{q} → 不调用工具，直接回答")
 
 
 # ==================================================
-# 第四部分：LangGraph版自动ReAct Agent
+# 第四部分：新版 create_agent 自动ReAct Agent
 # 对应原生：08-simple-react.py 手写while循环
-# 使用 langgraph.prebuilt.create_react_agent
+# 使用 langchain.agents.create_agent（1.x官方推荐）
 # ==================================================
 def auto_react_agent():
     """
-    LangGraph版自动ReAct Agent
+    新版 create_agent 自动ReAct Agent
     内部自动完成：思考→行动→观察→再思考...循环直到结束
     """
-    print("\n=== 3. LangGraph版自动ReAct Agent ===")
+    print("\n=== 3. 新版 create_agent 自动ReAct Agent ===")
 
-    # 创建ReAct Agent（一行搞定，不需要再创建AgentExecutor）
-    app = create_react_agent(
+    # 创建ReAct Agent（一行搞定，官方新版 create_agent）
+    app = create_agent(
         model=llm,
         tools=[calculator, get_current_time],
     )
